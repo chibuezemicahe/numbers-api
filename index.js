@@ -15,14 +15,9 @@ app.get('/api/classify-number', async (req, res) => {
    
 
     const number = req.query.number;
-    if (!number || isNaN(number) || !Number.isInteger(Number(number)) || number < 0) {
+    if (!number || isNaN(number)) {
         return res.status(400).json({ number: number, error: true });
     }
-
-    if (!number || isNaN(number) || number < 0) {
-        return res.status(400).json({ number: number, error: true });
-    }
-    
     const num = parseInt(number);
     
     const isPrime  = (num)=>{
@@ -59,8 +54,8 @@ app.get('/api/classify-number', async (req, res) => {
 
     try{
 
-        const response = await axios.get(`http://numbersapi.com/${num}/math`);
-        const funFact = response.data.text;
+        const response = await axios.get(`http://numbersapi.com/${num}/math?json`);
+        const funFact = response.data.text; 
         console.log({
             number: num,
             is_prime: isPrime(num),
