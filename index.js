@@ -52,9 +52,9 @@ app.get('/api/classify-number', async (req, res) => {
     return sum === num;
 };
 
-    if (isArmStrong(num)) armStrongProperty.push('Armstrong');
-    if (num % 2 === 0) armStrongProperty.push('even');
-    else armStrongProperty.push('odd');
+    if (isArmStrong(num)) properties.push('Armstrong');
+    if (num % 2 === 0) properties.push('even');
+    else properties.push('odd');
 
     try{
 
