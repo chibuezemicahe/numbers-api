@@ -1,4 +1,3 @@
-const { default: axios } = require('axios');
 const express = require('express');
 const app = express();
 PORT = process.env.PORT || 3000;
@@ -10,10 +9,9 @@ app.use(cors());
 app.get('/api/classify-number', async (req, res) => {
 
     const number = req.query.number;
-    
-    if (!number || isNaN(number)){
+    if (!number || isNaN(number) || number < 0) {
         return res.status(400).json({ number: number, error: true });
-    };
+    }
 
     const num = parseInt(number);
     
@@ -30,6 +28,7 @@ app.get('/api/classify-number', async (req, res) => {
                 sum += i;
             }
         }
+        return sum === num;
    }
 
    const digitSum = (num)=>{
@@ -38,6 +37,12 @@ app.get('/api/classify-number', async (req, res) => {
    }
     
    const armStrongProperty = [];
+
+   const isArmStrong = (num) => {
+    const digits = String(num).split('');
+    const sum = digits.reduce((acc, digit) => acc + Math.pow(Number(digit), digits.length), 0);
+    return sum === num;
+};
 
     if (isArmStrong(num)) armStrongProperty.push('Armstrong');
     if (num % 2 === 0) armStrongProperty.push('Even');
@@ -51,7 +56,7 @@ app.get('/api/classify-number', async (req, res) => {
             number: num,
             is_prime: isPrime(num),
             is_perfect: isPerfect(num),
-            properties: properties,
+            properties: armStrongProperty ,
             digit_sum: digitSum(num),
             fun_fact: funFact
         });
