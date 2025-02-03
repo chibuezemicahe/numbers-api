@@ -1,10 +1,13 @@
 const express = require('express');
 const app = express();
-PORT = process.env.PORT || 3000;
 const axios = require('axios');
 const cors = require('cors');
 
 app.use(cors());
+
+require('dotenv').config();
+
+const PORT = process.env.PORT;
 
 app.get('/api/classify-number', async (req, res) => {
 
