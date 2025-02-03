@@ -11,11 +11,17 @@ const PORT = process.env.PORT;
 
 app.get('/api/classify-number', async (req, res) => {
 
+   
+
     const number = req.query.number;
-    if (!number || isNaN(number) || number < 0) {
+    if (!number || isNaN(number) || !Number.isInteger(Number(number)) || number < 0) {
         return res.status(400).json({ number: number, error: true });
     }
 
+    if (!number || isNaN(number) || number < 0) {
+        return res.status(400).json({ number: number, error: true });
+    }
+    
     const num = parseInt(number);
     
     const isPrime  = (num)=>{
@@ -34,12 +40,11 @@ app.get('/api/classify-number', async (req, res) => {
         return sum === num;
    }
 
-   const digitSum = (num)=>{
-       let sum = 0;
+   const digitSum = (num)=>{  
     return  String(num).split('').reduce((acc, curr) => acc + Number(curr), 0); 
    }
     
-   const armStrongProperty = [];
+   const properties = [];
 
    const isArmStrong = (num) => {
     const digits = String(num).split('');
@@ -48,8 +53,8 @@ app.get('/api/classify-number', async (req, res) => {
 };
 
     if (isArmStrong(num)) armStrongProperty.push('Armstrong');
-    if (num % 2 === 0) armStrongProperty.push('Even');
-    else armStrongProperty.push('Odd');
+    if (num % 2 === 0) armStrongProperty.push('even');
+    else armStrongProperty.push('odd');
 
     try{
 
@@ -59,13 +64,13 @@ app.get('/api/classify-number', async (req, res) => {
             number: num,
             is_prime: isPrime(num),
             is_perfect: isPerfect(num),
-            properties: armStrongProperty ,
+            properties: properties,
             digit_sum: digitSum(num),
             fun_fact: funFact
         });
     }
     catch(error){
-        return res.status(500).json({ error: 'Failed to fetch fun facts' });
+    return res.status(500).json({error: 'Error while fetching data from external API'});
     }
  
 });
