@@ -1,80 +1,100 @@
-const express = require('express');
+const  express = require ("express");
+const dotenv = require("dotenv");
+const  axios = require ("axios");
+const  cors = require ("cors");
+
+dotenv.config();
+
 const app = express();
-const axios = require('axios');
-const cors = require('cors');
-
-app.use(cors());
-
-require('dotenv').config();
+app.use(cors({ origin: "*" }));
 
 const PORT = process.env.PORT;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
-app.get('/api/classify-number', async (req, res) => {
-
-   
-
-    const number = req.query.number;
-    if (!number || isNaN(number) || !Number.isInteger(Number(number)) || number < 0) {
-        return res.status(400).json({ number: number, error: true });
+// Function to check if number is prime
+const isPrime = (num) => {
+    if (num <= 1) return false;
+    if (num === 2) return true;
+    if (num % 2 === 0) return false;
+    for (let i = 3; i * i <= num; i += 2) {
+        if (num % i === 0) return false;
     }
+    return true;
+};
 
-    if (!number || isNaN(number) || number < 0) {
-        return res.status(400).json({ number: number, error: true });
-    }
-    
-    const num = parseInt(number);
-    
-    const isPrime  = (num)=>{
-        for (let i = 2; i < num; i++)
-            if (num % i === 0) return false;
-        return num > 1;
-    }
-
-   const isPerfect = (num)=>{
-        let sum = 0;
-        for(let i = 1; i<num; i++){
-            if ( num % i === 0){
-                sum += i;
-            }
+// Function to check if number is perfect
+const isPerfect = (num) => {
+    let sum = 1;
+    for (let i = 2; i * i <= num; i++) {
+        if (num % i === 0) {
+            sum += i;
+            if (i !== num / i) sum += num / i;
         }
-        return sum === num;
-   }
+    }
+    return sum === num && num !== 1;
+};
 
-   const digitSum = (num)=>{  
-    return  String(num).split('').reduce((acc, curr) => acc + Number(curr), 0); 
-   }
-    
-   const properties = [];
-
-   const isArmStrong = (num) => {
-    const digits = String(num).split('');
-    const sum = digits.reduce((acc, digit) => acc + Math.pow(Number(digit), digits.length), 0);
+// Function to check if a number is Armstrong
+const isArmstrong = (num) => {
+    const digits = num.toString().split("").map(Number);
+    const power = digits.length;
+    const sum = digits.reduce((acc, digit) => acc + Math.pow(digit, power), 0);
     return sum === num;
 };
 
-    if (isArmStrong(num)) properties.push('armstrong');
-    if (num % 2 === 0) properties.push('even');
-    else properties.push('odd');
-
-    try{
-
-        const response = await axios.get(`http://numbersapi.com/${num}/math`);
-        const funFact = response.data;
-        res.json({
-            number: num,
-            is_prime: isPrime(num),
-            is_perfect: isPerfect(num),
-            properties: properties,
-            digit_sum: digitSum(num),
-            fun_fact: funFact
-        });
+// Function to get a fun fact from Number API
+const getFunFact = async (num) => {
+    try {
+        const res = await axios.get(`http://numbersapi.com/${num}/math?json`);
+        return res.data.text;
+    } catch (error) {
+        return "No fun fact available";
     }
-    catch(error){
-    return res.status(500).json({error: 'Error while fetching data from external API'});
-    }
- 
+};
+
+// Default route
+app.get("/", (req, res) => {
+    res.send("Welcome to the Number Classifier API! Use /api/classify-number?number=yourNumber to view results, Example: https://number-classifier-api-wahy.onrender.com/api/classify-number?number=4 ");
 });
 
+
+// API Endpoint
+app.get("/api/classify-number", async (req, res) => {
+    const { number } = req.query;
+
+    // Validate input
+    if (!number || isNaN(number)) {
+        return res.status(400).json({ number, error: true });
+    }
+
+    const num = parseInt(number);
+
+    const prime = isPrime(num);
+    const perfect = isPerfect(num);
+    const armstrong = isArmstrong(num);
+    const odd = num % 2 !== 0;
+    const digitSum = [...num.toString()].reduce((sum, digit) => sum + Number(digit), 0);
+
+    const properties = [];
+    if (armstrong) properties.push("armstrong");
+    if (odd) {
+        properties.push("odd");
+    } else {
+        properties.push("even");
+    }
+
+    const funFact = await getFunFact(num);
+    res.json({
+        number: num,
+        is_prime: prime,
+        is_perfect: perfect,
+        properties,
+        digit_sum: digitSum,
+        fun_fact: funFact,
+    });
+});
+
+// Server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${BASE_URL}`);
 });
